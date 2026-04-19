@@ -2,31 +2,122 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+  <meta name="theme-color" content="#3498db">
   <title>동탄파크푸르지오 충전기 현황</title>
   <style>
-    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 0 auto; padding: 16px; background: #f5f5f5; }
-    h1 { font-size: 1.3rem; margin-bottom: 4px; }
-    .updated { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
-    .station { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-    h2 { font-size: 1rem; margin: 0 0 4px; }
-    h2 small { color: #999; font-weight: normal; font-size: 0.8rem; }
-    .summary { margin: 0 0 12px; font-size: 0.9rem; color: #555; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th { text-align: left; padding: 6px 8px; border-bottom: 2px solid #eee; color: #888; font-weight: 500; }
-    td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; color: #fff; font-size: 0.8rem; }
-    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #eef; color: #558; font-size: 0.78rem; }
-    .loading { color: #aaa; text-align: center; padding: 40px; }
-    button { margin-top: 8px; padding: 6px 14px; border: none; border-radius: 8px; background: #3498db; color: #fff; cursor: pointer; font-size: 0.85rem; }
-    button:hover { background: #2980b9; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      background: #f5f5f7;
+      color: #1c1c1e;
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    header { margin-bottom: 16px; }
+    h1 { font-size: 1.25rem; margin: 0 0 4px; font-weight: 700; }
+    .updated { color: #8e8e93; font-size: 0.8rem; margin: 0; }
+
+    .station {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    h2 { font-size: 1rem; margin: 0 0 2px; font-weight: 600; }
+    h2 small { color: #8e8e93; font-weight: 400; font-size: 0.75rem; display: block; margin-top: 2px; }
+    .summary {
+      margin: 6px 0 14px;
+      font-size: 0.9rem;
+      color: #555;
+      padding: 8px 12px;
+      background: #f0f7ff;
+      border-radius: 8px;
+    }
+    .summary strong { color: #2ecc71; font-size: 1.1rem; }
+
+    .charger-list { display: flex; flex-direction: column; gap: 8px; }
+    .charger {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: #fafafa;
+      border-radius: 10px;
+    }
+    .charger-id { font-weight: 600; font-size: 0.95rem; min-width: 68px; }
+    .charger-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #e8eefc;
+      color: #4a69bd;
+      font-size: 0.75rem;
+      font-weight: 500;
+      width: fit-content;
+    }
+    .output { font-size: 0.75rem; color: #8e8e93; }
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .loading, .error {
+      text-align: center;
+      padding: 40px 20px;
+      color: #8e8e93;
+      font-size: 0.9rem;
+    }
+    .error { color: #e74c3c; }
+
+    #refresh-fab {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #3498db;
+      color: #fff;
+      border: none;
+      font-size: 1.5rem;
+      box-shadow: 0 3px 10px rgba(52,152,219,.4);
+      cursor: pointer;
+      transition: transform 0.15s;
+      z-index: 10;
+    }
+    #refresh-fab:active { transform: scale(0.92); }
+    #refresh-fab.loading { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #000; color: #f2f2f7; }
+      .station { background: #1c1c1e; }
+      .charger { background: #2c2c2e; }
+      .summary { background: #1a2838; color: #c7d6e8; }
+      .updated, h2 small { color: #8e8e93; }
+      .tag { background: #2d3a5c; color: #a8bef0; }
+    }
   </style>
 </head>
 <body>
-  <h1>동탄파크푸르지오 충전기 현황</h1>
-  <p class="updated" id="updated">불러오는 중...</p>
-  <button onclick="load()">새로고침</button>
+  <header>
+    <h1>🔌 동탄파크푸르지오 충전기</h1>
+    <p class="updated" id="updated">불러오는 중...</p>
+  </header>
   <div id="content"><p class="loading">데이터를 가져오는 중입니다...</p></div>
+  <button id="refresh-fab" onclick="load()" aria-label="새로고침">↻</button>
 
   <script>
     const SERVICE_KEY = '70d9d335578e9fceb09425f85cc40a1976989c3fd59fe61962a4775daba7b7cf';
@@ -63,7 +154,7 @@
     };
 
     const STAT_MAP = {
-      '0': { text: '알수없음', color: '#aaa' },
+      '0': { text: '알수없음', color: '#8e8e93' },
       '1': { text: '통신이상', color: '#e74c3c' },
       '2': { text: '사용가능', color: '#2ecc71' },
       '3': { text: '충전중',   color: '#3498db' },
@@ -79,48 +170,52 @@
     }
 
     function renderStation(statId, location, items) {
-      const label = location ? ` [${location}]` : '';
+      const label = location ? ` · ${location}` : '';
       const statName = items[0]?.statNm ?? statId;
       const available = items.filter(x => x.stat === '2').length;
 
-      const rows = items.map(x => {
+      const chargers = items.map(x => {
         const chgerId = x.chgerId;
-        const { text, color } = STAT_MAP[x.stat] ?? { text: '알수없음', color: '#aaa' };
+        const { text, color } = STAT_MAP[x.stat] ?? { text: '알수없음', color: '#8e8e93' };
         const tag = CHARGER_TAGS[`${statId}-${chgerId}`] ?? '';
         const tagHtml = tag ? `<span class="tag">${tag}</span>` : '';
         return `
-          <tr>
-            <td>충전기 ${chgerId}</td>
-            <td>${tagHtml}</td>
-            <td><span class="badge" style="background:${color}">${text}</span></td>
-            <td>${x.output}kW</td>
-          </tr>`;
+          <div class="charger">
+            <div class="charger-id">#${chgerId}</div>
+            <div class="charger-info">
+              ${tagHtml}
+              <span class="output">${x.output}kW</span>
+            </div>
+            <span class="badge" style="background:${color}">${text}</span>
+          </div>`;
       }).join('');
 
       return `
         <div class="station">
-          <h2>${statName}${label} <small>(${statId})</small></h2>
+          <h2>${statName}${label}<small>${statId}</small></h2>
           <p class="summary">사용가능 <strong>${available}</strong> / 전체 ${items.length}기</p>
-          <table>
-            <thead><tr><th>충전기</th><th>위치</th><th>상태</th><th>용량</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
+          <div class="charger-list">${chargers}</div>
         </div>`;
     }
 
     async function load() {
-      document.getElementById('content').innerHTML = '<p class="loading">데이터를 가져오는 중입니다...</p>';
+      const fab = document.getElementById('refresh-fab');
+      fab.classList.add('loading');
       document.getElementById('updated').textContent = '불러오는 중...';
       try {
-        const results = await Promise.all(
-          STATIONS.map(s => fetchStation(s.statId))
-        );
+        const results = await Promise.all(STATIONS.map(s => fetchStation(s.statId)));
         const html = STATIONS.map((s, i) => renderStation(s.statId, s.location, results[i])).join('');
         document.getElementById('content').innerHTML = html;
-        const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-        document.getElementById('updated').textContent = `마지막 업데이트: ${now}`;
+        const now = new Date().toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul',
+          month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        document.getElementById('updated').textContent = `${now} 기준`;
       } catch (e) {
-        document.getElementById('content').innerHTML = `<p style="color:red">오류: ${e.message}</p>`;
+        document.getElementById('content').innerHTML = `<p class="error">오류: ${e.message}</p>`;
+      } finally {
+        fab.classList.remove('loading');
       }
     }
 
