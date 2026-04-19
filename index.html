@@ -72,7 +72,7 @@
     };
 
     async function fetchStation(statId) {
-      const url = `http://apis.data.go.kr/B552584/EvCharger/getChargerInfo?serviceKey=${SERVICE_KEY}&numOfRows=9999&pageNo=1&dataType=JSON&statId=${statId}`;
+      const url = `https://apis.data.go.kr/B552584/EvCharger/getChargerInfo?serviceKey=${SERVICE_KEY}&numOfRows=9999&pageNo=1&dataType=JSON&statId=${statId}`;
       const res = await fetch(url);
       const data = await res.json();
       return data.items.item;
