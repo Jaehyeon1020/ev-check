@@ -1,0 +1,23 @@
+{
+  "name": "동탄파크푸르지오 충전기",
+  "short_name": "충전기",
+  "description": "동탄파크푸르지오 전기차 충전기 실시간 현황",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
