@@ -1,9 +1,8 @@
-name: Update Charger Status
+name: Deploy to GitHub Pages
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'  # 10분마다 실행
-  workflow_dispatch:          # 수동 실행 버튼
+  push:
+    branches: [main]
 
 jobs:
   deploy:
@@ -13,13 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate HTML
-        run: python3 generate_html.py
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           publish_branch: gh-pages
-          exclude_assets: '.github,*.sh,*.py,*.yml'
+          exclude_assets: '.github,*.sh,*.yml'
