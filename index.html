@@ -44,32 +44,32 @@
     .charger {
       display: grid;
       grid-template-columns: auto 1fr auto;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
-      padding: 10px 12px;
+      padding: 14px 14px;
       background: #fafafa;
       border-radius: 10px;
     }
-    .charger-id { font-weight: 600; font-size: 0.95rem; min-width: 68px; }
-    .charger-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .charger-id { font-weight: 600; font-size: 0.9rem; color: #8e8e93; min-width: 44px; }
+    .charger-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .tag {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
       background: #e8eefc;
-      color: #4a69bd;
-      font-size: 0.75rem;
-      font-weight: 500;
+      color: #2d4a8a;
+      font-size: 1rem;
+      font-weight: 700;
       width: fit-content;
     }
     .output { font-size: 0.75rem; color: #8e8e93; }
     .badge {
       display: inline-block;
-      padding: 5px 10px;
+      padding: 8px 14px;
       border-radius: 20px;
       color: #fff;
-      font-size: 0.78rem;
-      font-weight: 600;
+      font-size: 1rem;
+      font-weight: 700;
       white-space: nowrap;
     }
 
@@ -123,8 +123,8 @@
     const SERVICE_KEY = '70d9d335578e9fceb09425f85cc40a1976989c3fd59fe61962a4775daba7b7cf';
 
     const STATIONS = [
-      { statId: 'PW801329', location: '' },
-      { statId: 'PW801037', location: '지하주차장' },
+      { statId: 'PW801329', location: '', tagOrder: ['109동 지상', '105동 지상 후문 쪽'] },
+      { statId: 'PW801037', location: '지하주차장', tagOrder: ['102동 지하 1층', '107동 후문 쪽'] },
     ];
 
     const CHARGER_TAGS = {
@@ -169,12 +169,23 @@
       return data.items.item;
     }
 
-    function renderStation(statId, location, items) {
+    function renderStation(statId, location, items, tagOrder = []) {
       const label = location ? ` · ${location}` : '';
       const statName = items[0]?.statNm ?? statId;
       const available = items.filter(x => x.stat === '2').length;
 
-      const chargers = items.map(x => {
+      const sorted = [...items].sort((a, b) => {
+        const tagA = CHARGER_TAGS[`${statId}-${a.chgerId}`] ?? '';
+        const tagB = CHARGER_TAGS[`${statId}-${b.chgerId}`] ?? '';
+        const idxA = tagOrder.indexOf(tagA);
+        const idxB = tagOrder.indexOf(tagB);
+        const rankA = idxA === -1 ? 999 : idxA;
+        const rankB = idxB === -1 ? 999 : idxB;
+        if (rankA !== rankB) return rankA - rankB;
+        return a.chgerId.localeCompare(b.chgerId);
+      });
+
+      const chargers = sorted.map(x => {
         const chgerId = x.chgerId;
         const { text, color } = STAT_MAP[x.stat] ?? { text: '알수없음', color: '#8e8e93' };
         const tag = CHARGER_TAGS[`${statId}-${chgerId}`] ?? '';
@@ -204,7 +215,7 @@
       document.getElementById('updated').textContent = '불러오는 중...';
       try {
         const results = await Promise.all(STATIONS.map(s => fetchStation(s.statId)));
-        const html = STATIONS.map((s, i) => renderStation(s.statId, s.location, results[i])).join('');
+        const html = STATIONS.map((s, i) => renderStation(s.statId, s.location, results[i], s.tagOrder)).join('');
         document.getElementById('content').innerHTML = html;
         const now = new Date().toLocaleString('ko-KR', {
           timeZone: 'Asia/Seoul',
