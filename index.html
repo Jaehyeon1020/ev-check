@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>동탄파크푸르지오 충전기 현황</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 0 auto; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 1.3rem; margin-bottom: 4px; }
+    .updated { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+    .station { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    h2 { font-size: 1rem; margin: 0 0 4px; }
+    h2 small { color: #999; font-weight: normal; font-size: 0.8rem; }
+    .summary { margin: 0 0 12px; font-size: 0.9rem; color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 6px 8px; border-bottom: 2px solid #eee; color: #888; font-weight: 500; }
+    td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; color: #fff; font-size: 0.8rem; }
+    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #eef; color: #558; font-size: 0.78rem; }
+    .loading { color: #aaa; text-align: center; padding: 40px; }
+    button { margin-top: 8px; padding: 6px 14px; border: none; border-radius: 8px; background: #3498db; color: #fff; cursor: pointer; font-size: 0.85rem; }
+    button:hover { background: #2980b9; }
+  </style>
+</head>
+<body>
+  <h1>동탄파크푸르지오 충전기 현황</h1>
+  <p class="updated" id="updated">불러오는 중...</p>
+  <button onclick="load()">새로고침</button>
+  <div id="content"><p class="loading">데이터를 가져오는 중입니다...</p></div>
+
+  <script>
+    const SERVICE_KEY = '70d9d335578e9fceb09425f85cc40a1976989c3fd59fe61962a4775daba7b7cf';
+
+    const STATIONS = [
+      { statId: 'PW801329', location: '' },
+      { statId: 'PW801037', location: '지하주차장' },
+    ];
+
+    const CHARGER_TAGS = {
+      'PW801329-01': '105동 지상 후문 쪽',
+      'PW801329-02': '105동 지상 후문 쪽',
+      'PW801329-03': '105동 지상 후문 쪽',
+      'PW801329-04': '105동 지상 후문 쪽',
+      'PW801329-05': '105동 지상 후문 쪽',
+      'PW801329-06': '105동 지상 후문 쪽',
+      'PW801329-07': '105동 지상 후문 쪽',
+      'PW801329-08': '105동 지상 후문 쪽',
+      'PW801329-09': '105동 지상 후문 쪽',
+      'PW801329-10': '109동 지상',
+      'PW801329-11': '109동 지상',
+      'PW801329-12': '109동 지상',
+      'PW801329-13': '109동 지상',
+      'PW801329-14': '109동 지상',
+      'PW801037-01': '107동 후문 쪽',
+      'PW801037-02': '107동 후문 쪽',
+      'PW801037-03': '107동 후문 쪽',
+      'PW801037-04': '107동 후문 쪽',
+      'PW801037-05': '102동 지하 1층',
+      'PW801037-06': '102동 지하 1층',
+      'PW801037-07': '102동 지하 1층',
+      'PW801037-08': '102동 지하 1층',
+      'PW801037-09': '102동 지하 1층',
+    };
+
+    const STAT_MAP = {
+      '0': { text: '알수없음', color: '#aaa' },
+      '1': { text: '통신이상', color: '#e74c3c' },
+      '2': { text: '사용가능', color: '#2ecc71' },
+      '3': { text: '충전중',   color: '#3498db' },
+      '4': { text: '운영중지', color: '#e67e22' },
+      '5': { text: '점검중',   color: '#e67e22' },
+    };
+
+    async function fetchStation(statId) {
+      const url = `https://apis.data.go.kr/B552584/EvCharger/getChargerInfo?serviceKey=${SERVICE_KEY}&numOfRows=9999&pageNo=1&dataType=JSON&statId=${statId}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data.items.item;
+    }
+
+    function renderStation(statId, location, items) {
+      const label = location ? ` [${location}]` : '';
+      const statName = items[0]?.statNm ?? statId;
+      const available = items.filter(x => x.stat === '2').length;
+
+      const rows = items.map(x => {
+        const chgerId = x.chgerId;
+        const { text, color } = STAT_MAP[x.stat] ?? { text: '알수없음', color: '#aaa' };
+        const tag = CHARGER_TAGS[`${statId}-${chgerId}`] ?? '';
+        const tagHtml = tag ? `<span class="tag">${tag}</span>` : '';
+        return `
+          <tr>
+            <td>충전기 ${chgerId}</td>
+            <td>${tagHtml}</td>
+            <td><span class="badge" style="background:${color}">${text}</span></td>
+            <td>${x.output}kW</td>
+          </tr>`;
+      }).join('');
+
+      return `
+        <div class="station">
+          <h2>${statName}${label} <small>(${statId})</small></h2>
+          <p class="summary">사용가능 <strong>${available}</strong> / 전체 ${items.length}기</p>
+          <table>
+            <thead><tr><th>충전기</th><th>위치</th><th>상태</th><th>용량</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    async function load() {
+      document.getElementById('content').innerHTML = '<p class="loading">데이터를 가져오는 중입니다...</p>';
+      document.getElementById('updated').textContent = '불러오는 중...';
+      try {
+        const results = await Promise.all(
+          STATIONS.map(s => fetchStation(s.statId))
+        );
+        const html = STATIONS.map((s, i) => renderStation(s.statId, s.location, results[i])).join('');
+        document.getElementById('content').innerHTML = html;
+        const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+        document.getElementById('updated').textContent = `마지막 업데이트: ${now}`;
+      } catch (e) {
+        document.getElementById('content').innerHTML = `<p style="color:red">오류: ${e.message}</p>`;
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
